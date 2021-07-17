@@ -10,6 +10,19 @@ require 'sun_times'
 
 #p ARGV
 
+if ARGV.include?('-h') || ARGV.include?('--help')
+  puts
+  puts 'sunrise'
+  puts
+  puts 'USAGE'
+  puts
+  puts 'bin/sunrise 790-06-17 28 61.09603 4.70432 solar'
+  puts '  lists the sunrise/set for 28 days from 790-06-17'
+  puts '  somewhere in Norway, using solar time (not timezone time)'
+  puts
+  exit 0
+end
+
 args = ARGV.inject({ rest: [] }) { |h, a|
   if a.match?(/^-?\d{1,4}-\d{1,2}-\d{1,2}$/)
     t = Time.parse("#{a} 12:00:00")
