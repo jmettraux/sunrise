@@ -3,8 +3,66 @@
 require 'rubygems'
 require 'bundler/setup'
 
+require 'time'
+
 #require 'ruby-sun-times'
 require 'sun_times'
 
-p ARGV
+#p ARGV
+
+args = ARGV.inject({}) { |h, a|
+  if a.match?(/^-?\d{1,4}-\d{1,2}-\d{1,2}$/)
+    t = Time.parse("#{a} 12:00:00")
+    h[:to] ||= (h[:from] && t)
+    h[:from] ||= t
+  elsif a.match?(/^-?\d+\.\d+$/)
+    f = a.to_f
+    h[:lon] ||= (h[:lat] && f)
+    h[:lat] ||= f
+  elsif a.match?(/^\d+$/)
+    h[:count] = a.to_i
+  end
+  h }
+#p args
+
+args[:from] ||= Time.now
+args[:count] ||= 7
+args[:lat] ||= 50.77473 # Aachen
+args[:lon] ||=  6.08405 #
+#p args
+
+puts "position: #{args[:lat]} / #{args[:lon]}"
+
+count = 0
+t = args[:from]
+st = SunTimes.new
+
+loop do
+
+  d = Date.new(t.year, t.month, t.day)
+
+  ri = st.rise(d, args[:lat], args[:lon])
+  se = st.set(d, args[:lat], args[:lon])
+  lt = (se - ri).to_i
+
+  s = lt; h = s / 3600
+  s = s - h * 3600; m = s / 60
+  s = s - m * 60
+  light = "#{h}h#{m}m#{s}s"
+
+  da = t.strftime('%F')
+  ri = ri.strftime('%T')
+  se = se.strftime('%T')
+
+  #p [ da, ri, se, lt ]
+  puts "#{da}  #{ri} --> #{se}  (#{light})"
+
+  # loop
+
+  count += 1
+  t = t + 24 * 3600
+
+  break if args[:count] && count > args[:count]
+  break if args[:to] && t > args[:to]
+end
 
