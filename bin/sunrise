@@ -10,7 +10,7 @@ require 'sun_times'
 
 #p ARGV
 
-args = ARGV.inject({}) { |h, a|
+args = ARGV.inject({ rest: [] }) { |h, a|
   if a.match?(/^-?\d{1,4}-\d{1,2}-\d{1,2}$/)
     t = Time.parse("#{a} 12:00:00")
     h[:to] ||= (h[:from] && t)
@@ -21,9 +21,10 @@ args = ARGV.inject({}) { |h, a|
     h[:lat] ||= f
   elsif a.match?(/^\d+$/)
     h[:count] = a.to_i
+  else
+    h[:rest] << a
   end
   h }
-#p args
 
 args[:from] ||= Time.now
 args[:count] ||= 7
@@ -51,6 +52,11 @@ loop do
   light = "#{h}h#{m}m#{s}s"
 
   da = t.strftime('%F')
+  if args[:rest].include?('solar') || args[:rest].include?('s')
+    noon = Time.parse("#{da} 12:00:00")
+    ri = (noon - lt / 2)
+    se = (noon + lt / 2)
+  end
   ri = ri.strftime('%T')
   se = se.strftime('%T')
 
