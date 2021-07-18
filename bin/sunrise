@@ -8,6 +8,10 @@ require 'time'
 #require 'ruby-sun-times'
 require 'sun_times'
 
+$: << 'lib'
+require 'sunrise_moon'
+
+
 #p ARGV
 
 if ARGV.include?('-h') || ARGV.include?('--help')
@@ -51,6 +55,12 @@ count = 0
 t = args[:from]
 st = SunTimes.new
 
+moon = args[:rest].include?('m') || args[:rest].include?('moon')
+if moon
+  t1 = args[:to] || (args[:from] + args[:count] * 24 * 3600)
+  moon = Sunrise::Moon.times(args[:from], t1, args[:lon])
+end
+
 loop do
 
   d = Date.new(t.year, t.month, t.day)
@@ -62,7 +72,7 @@ loop do
   s = lt; h = s / 3600
   s = s - h * 3600; m = s / 60
   s = s - m * 60
-  light = "#{h}h#{m}m#{s}s"
+  light = "%dh%02dm%02ds" % [ h, m, s ]
 
   da = t.strftime('%F')
   if args[:rest].include?('solar') || args[:rest].include?('s')
@@ -73,8 +83,12 @@ loop do
   ri = ri.strftime('%T')
   se = se.strftime('%T')
 
+  m = moon && moon[da]
+  m = m && "  #{m[2].strftime('%H:%M')} #{m[1].to_s.gsub(/_/, ' ')}#{m[3] ? ', ' + m[3].downcase : ''}"
+
   #p [ da, ri, se, lt ]
-  puts "#{da}  #{ri} --> #{se}  (#{light})"
+  #puts "#{da} ☼ #{ri} --> ☀ #{se}  (#{light})"
+  puts "#{da} ↗ #{ri} ↘ #{se}  ↦ #{light}#{m}"
 
   # loop
 
@@ -84,4 +98,14 @@ loop do
   break if args[:count] && count > args[:count]
   break if args[:to] && t > args[:to]
 end
+
+#    MOON = '🌜  '
+#    SUN = '☼ '
+#
+#    MNML = '🌑︎' # new moon
+#    MNMD = '🌕︎'
+#    MFQ = '☽︎' # first quarter
+#    MFML = '🌕︎' # full moon
+#    MFMD = '🌑︎'
+#    MLQ = '☾' # last quarter
 
